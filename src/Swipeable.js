@@ -12,18 +12,33 @@ function getInitialState() {
   };
 }
 
-function getMovingPosition(e) {
+function selectChangedTouchesById(changedTouches, id) {
+  if (id === -1) {
+    return changedTouches;
+  }
+  return Array.from(changedTouches).filter(touch => touch.identifier === id);
+}
+
+function getMovingPosition(e, id = -1) {
   // If not a touch, determine point from mouse coordinates
   return 'changedTouches' in e
-    ? { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY }
-    : { x: e.clientX, y: e.clientY };
+    ? {
+      x: selectChangedTouchesById(e.changedTouches, id)[0].clientX,
+      y: selectChangedTouchesById(e.changedTouches, id)[0].clientY,
+      identifier: id,
+    }
+    : { x: e.clientX, y: e.clientY, identifier: -1 };
 }
 
 function getPositionTargetTouches(e) {
   // If not a targetTouch, determine point from mouse coordinates
   return 'targetTouches' in e
-    ? { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY }
-    : { x: e.clientX, y: e.clientY };
+    ? {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+      identifier: e.targetTouches[0].identifier,
+    }
+    : { x: e.clientX, y: e.clientY, identifier: -1 };
 }
 
 function getPosition(e, enableMultiTouch = false) {
@@ -32,8 +47,8 @@ function getPosition(e, enableMultiTouch = false) {
   }
   // If not a touch, determine point from mouse coordinates
   return 'touches' in e
-    ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
-    : { x: e.clientX, y: e.clientY };
+    ? { x: e.touches[0].clientX, y: e.touches[0].clientY, identifier: e.touches[0].identifier }
+    : { x: e.clientX, y: e.clientY, identifier: -1 };
 }
 
 function rotateByAngle(pos, angle) {
@@ -41,16 +56,16 @@ function rotateByAngle(pos, angle) {
     return pos;
   }
 
-  const { x, y } = pos;
+  const { x, y, identifier } = pos;
 
   const angleInRadians = (Math.PI / 180) * angle;
   const rotatedX = x * Math.cos(angleInRadians) + y * Math.sin(angleInRadians);
   const rotatedY = y * Math.cos(angleInRadians) - x * Math.sin(angleInRadians);
-  return { x: rotatedX, y: rotatedY };
+  return { x: rotatedX, y: rotatedY, identifier };
 }
 
 function calculatePos(e, state) {
-  const { x, y } = rotateByAngle(getMovingPosition(e), state.rotationAngle);
+  const { x, y } = rotateByAngle(getMovingPosition(e, state.id), state.rotationAngle);
 
   const deltaX = state.x - x;
   const deltaY = state.y - y;
@@ -86,6 +101,8 @@ class Swipeable extends React.Component {
 
     // check for passive event support
     this.hasPassiveSupport = DetectPassiveEvents.hasSupport;
+
+    // need id for filtering multiple changed touches
   }
 
   componentDidMount() {
@@ -170,11 +187,11 @@ class Swipeable extends React.Component {
     const { rotationAngle, enableMultiTouch } = this.props;
     if ((e.touches && e.touches.length > 1) && !enableMultiTouch) return;
 
-    const { x, y } = rotateByAngle(getPosition(e, enableMultiTouch), rotationAngle);
+    const { x, y, identifier } = rotateByAngle(getPosition(e, enableMultiTouch), rotationAngle);
 
     if (this.props.stopPropagation) e.stopPropagation();
 
-    this.swipeable = { start: Date.now(), x, y, swiping: false, rotationAngle };
+    this.swipeable = { start: Date.now(), x, y, swiping: false, rotationAngle, id: identifier };
   }
 
   eventMove(e) {
@@ -191,8 +208,8 @@ class Swipeable extends React.Component {
     } = this.props;
 
     if (!this.swipeable.x ||
-        !this.swipeable.y ||
-        ((e.touches && e.touches.length > 1) && !enableMultiTouch)) {
+      !this.swipeable.y ||
+      ((e.touches && e.touches.length > 1) && !enableMultiTouch)) {
       return;
     }
 
