@@ -324,6 +324,7 @@ class Swipeable extends React.Component {
     delete newProps.disabled;
     delete newProps.innerRef;
     delete newProps.rotationAngle;
+    delete newProps.enableMultiTouch;
 
     return React.createElement(
       this.props.nodeName,
