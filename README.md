@@ -91,7 +91,7 @@ as well as the x distance, + or -, from where the swipe started to where it ende
 
 **`rotationAngle`** will allow to set a rotation angle, e.g. for a four-player game on a tablet, where each player has a 90° turned view. The default value is `0`.
 
-**`enableMultiTouch`** enables multi touch features. The default is `false`.
+**`enableMultiTouch`** enables multi touch features for interacting with multiple instances. The default is `false`.
 
 **None of the props are required.**
 ### PropType Definitions
