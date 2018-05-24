@@ -18,7 +18,18 @@ function getMovingPosition(e) {
     ? { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY }
     : { x: e.clientX, y: e.clientY };
 }
-function getPosition(e) {
+
+function getPositionTargetTouches(e) {
+  // If not a targetTouch, determine point from mouse coordinates
+  return 'targetTouches' in e
+    ? { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY }
+    : { x: e.clientX, y: e.clientY };
+}
+
+function getPosition(e, enableMultiTouch = false) {
+  if (enableMultiTouch) {
+    return getPositionTargetTouches(e);
+  }
   // If not a touch, determine point from mouse coordinates
   return 'touches' in e
     ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
@@ -99,7 +110,7 @@ class Swipeable extends React.Component {
     if (prevProps.preventDefaultTouchmoveEvent && !this.props.preventDefaultTouchmoveEvent) {
       this.cleanupTouchmoveEvent();
 
-    // preventDefaultTouchmoveEvent toggled on - add touch move if needed
+      // preventDefaultTouchmoveEvent toggled on - add touch move if needed
     } else if (!prevProps.preventDefaultTouchmoveEvent && this.props.preventDefaultTouchmoveEvent) {
       this.setupTouchmoveEvent();
     }
@@ -156,11 +167,10 @@ class Swipeable extends React.Component {
   }
 
   eventStart(e) {
-    // if more than a single touch don't track, for now...
-    if (e.touches && e.touches.length > 1) return;
+    const { rotationAngle, enableMultiTouch } = this.props;
+    if ((e.touches && e.touches.length > 1) && !enableMultiTouch) return;
 
-    const { rotationAngle } = this.props;
-    const { x, y } = rotateByAngle(getPosition(e), rotationAngle);
+    const { x, y } = rotateByAngle(getPosition(e, enableMultiTouch), rotationAngle);
 
     if (this.props.stopPropagation) e.stopPropagation();
 
@@ -177,9 +187,12 @@ class Swipeable extends React.Component {
       onSwipingUp, onSwipedUp,
       onSwipingDown, onSwipedDown,
       preventDefaultTouchmoveEvent,
+      enableMultiTouch,
     } = this.props;
 
-    if (!this.swipeable.x || !this.swipeable.y || e.touches && e.touches.length > 1) {
+    if (!this.swipeable.x ||
+        !this.swipeable.y ||
+        ((e.touches && e.touches.length > 1) && !enableMultiTouch)) {
       return;
     }
 
@@ -342,6 +355,7 @@ Swipeable.propTypes = {
   innerRef: PropTypes.func,
   children: PropTypes.node,
   rotationAngle: PropTypes.number,
+  enableMultiTouch: PropTypes.bool,
 };
 
 Swipeable.defaultProps = {
@@ -352,6 +366,7 @@ Swipeable.defaultProps = {
   nodeName: 'div',
   disabled: false,
   rotationAngle: 0,
+  enableMultiTouch: false,
 };
 
 module.exports = Swipeable;
