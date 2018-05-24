@@ -25,7 +25,13 @@ function getPosition(e) {
     : { x: e.clientX, y: e.clientY };
 }
 
-function rotateByAngle({ x, y }, angle) {
+function rotateByAngle(pos, angle) {
+  if (angle === 0) {
+    return pos;
+  }
+
+  const { x, y } = pos;
+
   const angleInRadians = (Math.PI / 180) * angle;
   const rotatedX = x * Math.cos(angleInRadians) + y * Math.sin(angleInRadians);
   const rotatedY = y * Math.cos(angleInRadians) - x * Math.sin(angleInRadians);
@@ -165,7 +171,7 @@ class Swipeable extends React.Component {
     const {
       stopPropagation,
       delta,
-      onSwiping,
+      onSwiping, onSwiped,
       onSwipingLeft, onSwipedLeft,
       onSwipingRight, onSwipedRight,
       onSwipingUp, onSwipedUp,
@@ -188,7 +194,13 @@ class Swipeable extends React.Component {
       onSwiping(e, pos.deltaX, pos.deltaY, pos.absX, pos.absY, pos.velocity);
     }
 
+    // track if a swipe is cancelable
+    // so we can call prevenDefault if needed
     let cancelablePageSwipe = false;
+    if (onSwiping || onSwiped) {
+      cancelablePageSwipe = true;
+    }
+
     if (pos.absX > pos.absY) {
       if (pos.deltaX > 0) {
         if (onSwipingLeft || onSwipedLeft) {

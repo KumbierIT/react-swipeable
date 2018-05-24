@@ -229,6 +229,52 @@ describe('Swipeable', () => {
     wrapper.unmount();
   });
 
+  it('calls preventDefault when onSwiping is present', () => {
+    const onSwiping = jest.fn();
+    const preventDefault = jest.fn();
+    const wrapper = mount((
+      <Swipeable
+        onSwiping={onSwiping}
+        preventDefaultTouchmoveEvent={true}
+      >
+        <span>Touch Here</span>
+      </Swipeable>
+    ));
+
+    const touchHere = wrapper.find('span');
+    touchHere.simulate('touchStart', createStartTouchEventObject({ x: 100, y: 100, preventDefault }));
+    touchHere.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 50, preventDefault }));
+    touchHere.simulate('touchEnd', createMoveTouchEventObject({ x: 100, y: 5, preventDefault }));
+
+    expect(onSwiping).toHaveBeenCalled();
+
+    expect(preventDefault).toHaveBeenCalled();
+    wrapper.unmount();
+  });
+
+  it('calls preventDefault when onSwiped is present', () => {
+    const onSwiped = jest.fn();
+    const preventDefault = jest.fn();
+    const wrapper = mount((
+      <Swipeable
+        onSwiped={onSwiped}
+        preventDefaultTouchmoveEvent={true}
+      >
+        <span>Touch Here</span>
+      </Swipeable>
+    ));
+
+    const touchHere = wrapper.find('span');
+    touchHere.simulate('touchStart', createStartTouchEventObject({ x: 100, y: 100, preventDefault }));
+    touchHere.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 50, preventDefault }));
+    touchHere.simulate('touchEnd', createMoveTouchEventObject({ x: 100, y: 5, preventDefault }));
+
+    expect(onSwiped).toHaveBeenCalled();
+
+    expect(preventDefault).toHaveBeenCalled();
+    wrapper.unmount();
+  });
+
   it('disables swipeable with disabled prop using touch swipe', () => {
     const onSwiping = jest.fn();
     const onSwipedRight = jest.fn();
@@ -500,5 +546,89 @@ describe('Swipeable', () => {
       expect(swipeFuncs.onSwiped).toHaveBeenCalled();
       expect(swipeFuncs.onSwiping).toHaveBeenCalledTimes(3);
     });
+  });
+
+
+  it('Handle Rotation by negative 90 degree', () => {
+    const swipeFuncs = getMockedSwipeFunctions();
+    const onTap = jest.fn();
+
+    const wrapper = mount((
+      <Swipeable
+        {...swipeFuncs}
+        onTap={onTap}
+        rotationAngle={-90}
+      >
+        <span>Touch Here</span>
+      </Swipeable>
+    ));
+
+    const touchHere = wrapper.find('span');
+
+    touchHere.simulate('touchStart', createStartTouchEventObject({ x: 100, y: 100 }));
+    touchHere.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 125 }));
+    touchHere.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 150 }));
+    touchHere.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 175 }));
+    touchHere.simulate('touchEnd', createMoveTouchEventObject({ x: 100, y: 200 }));
+
+    expect(swipeFuncs.onSwipedDown).not.toHaveBeenCalled();
+    expect(swipeFuncs.onSwipingDown).not.toHaveBeenCalled();
+    expect(swipeFuncs.onSwipedUp).not.toHaveBeenCalled();
+    expect(swipeFuncs.onSwipingUp).not.toHaveBeenCalled();
+
+    expect(swipeFuncs.onSwipedLeft).toHaveBeenCalled();
+    expect(swipeFuncs.onSwipingLeft).toHaveBeenCalled();
+
+    expect(swipeFuncs.onSwipedRight).not.toHaveBeenCalled();
+    expect(swipeFuncs.onSwipingRight).not.toHaveBeenCalledTimes(3);
+
+    expect(onTap).not.toHaveBeenCalled();
+
+    expect(swipeFuncs.onSwiped).toHaveBeenCalled();
+    expect(swipeFuncs.onSwiping).toHaveBeenCalledTimes(3);
+
+    wrapper.unmount();
+  });
+
+
+  it('Handle Rotation by more than 360 degree', () => {
+    const swipeFuncs = getMockedSwipeFunctions();
+    const onTap = jest.fn();
+
+    const wrapper = mount((
+      <Swipeable
+        {...swipeFuncs}
+        onTap={onTap}
+        rotationAngle={360 + 270}
+      >
+        <span>Touch Here</span>
+      </Swipeable>
+    ));
+
+    const touchHere = wrapper.find('span');
+
+    touchHere.simulate('touchStart', createStartTouchEventObject({ x: 100, y: 100 }));
+    touchHere.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 125 }));
+    touchHere.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 150 }));
+    touchHere.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 175 }));
+    touchHere.simulate('touchEnd', createMoveTouchEventObject({ x: 100, y: 200 }));
+
+    expect(swipeFuncs.onSwipedDown).not.toHaveBeenCalled();
+    expect(swipeFuncs.onSwipingDown).not.toHaveBeenCalled();
+    expect(swipeFuncs.onSwipedUp).not.toHaveBeenCalled();
+    expect(swipeFuncs.onSwipingUp).not.toHaveBeenCalled();
+
+    expect(swipeFuncs.onSwipedLeft).toHaveBeenCalled();
+    expect(swipeFuncs.onSwipingLeft).toHaveBeenCalled();
+
+    expect(swipeFuncs.onSwipedRight).not.toHaveBeenCalled();
+    expect(swipeFuncs.onSwipingRight).not.toHaveBeenCalledTimes(3);
+
+    expect(onTap).not.toHaveBeenCalled();
+
+    expect(swipeFuncs.onSwiped).toHaveBeenCalled();
+    expect(swipeFuncs.onSwiping).toHaveBeenCalledTimes(3);
+
+    wrapper.unmount();
   });
 });
