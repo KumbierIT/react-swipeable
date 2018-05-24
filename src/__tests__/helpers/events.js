@@ -5,6 +5,7 @@ function createClientXYObject(x, y) {
 export function createStartTouchEventObject({ x = 0, y = 0, preventDefault = () => {} }) {
   return {
     touches: [createClientXYObject(x, y)],
+    targetTouches: [createClientXYObject(x, y)],
     preventDefault,
   };
 }
