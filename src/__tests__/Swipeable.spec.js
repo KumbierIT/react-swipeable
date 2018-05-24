@@ -633,7 +633,7 @@ describe('Swipeable', () => {
   });
 
   describe('MultiTouch works', () => {
-    let wrapper = {}
+    let wrapper = {};
     let touchAreaOne = {};
     let touchAreaTwo = {};
     let swipeFuncsOne = {};
@@ -676,10 +676,13 @@ describe('Swipeable', () => {
       touchAreaTwo = {};
     });
 
-    it('handels multiple taps at a time', () => {
+    it('handles multiple taps at a time', () => {
       touchAreaOne.simulate('touchStart', createStartTouchEventObject({ x: 100, y: 100 }));
       touchAreaOne.simulate('touchMove', createMoveTouchEventObject({ x: 101, y: 100 }));
       touchAreaOne.simulate('touchEnd', createMoveTouchEventObject({ x: 102, y: 100 }));
+
+      expect(onTapOne).toHaveBeenCalled();
+      expect(onTapTwo).not.toHaveBeenCalled();
 
       touchAreaTwo.simulate('touchStart', createStartTouchEventObject({ x: 100, y: 100 }));
       touchAreaTwo.simulate('touchMove', createMoveTouchEventObject({ x: 101, y: 100 }));
@@ -689,12 +692,38 @@ describe('Swipeable', () => {
       expect(onTapTwo).toHaveBeenCalled();
     });
 
-    it('handels multiple swipes at a time', () => {
+    it('handles multiple swipes at a time', () => {
       touchAreaOne.simulate('touchStart', createStartTouchEventObject({ x: 100, y: 100 }));
       touchAreaOne.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 125 }));
       touchAreaOne.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 150 }));
       touchAreaOne.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 175 }));
       touchAreaOne.simulate('touchEnd', createMoveTouchEventObject({ x: 100, y: 200 }));
+
+      expect(swipeFuncsOne.onSwipedDown).toHaveBeenCalled();
+      expect(swipeFuncsOne.onSwipingDown).toHaveBeenCalled();
+      expect(swipeFuncsOne.onSwipedUp).not.toHaveBeenCalled();
+      expect(swipeFuncsOne.onSwipingUp).not.toHaveBeenCalled();
+      expect(swipeFuncsOne.onSwipedLeft).not.toHaveBeenCalled();
+      expect(swipeFuncsOne.onSwipingLeft).not.toHaveBeenCalled();
+      expect(swipeFuncsOne.onSwipedRight).not.toHaveBeenCalled();
+      expect(swipeFuncsOne.onSwipingRight).not.toHaveBeenCalledTimes(3);
+
+      expect(swipeFuncsOne.onSwiped).toHaveBeenCalled();
+      expect(swipeFuncsOne.onSwiping).toHaveBeenCalledTimes(3);
+      expect(onTapOne).not.toHaveBeenCalled();
+
+      expect(swipeFuncsTwo.onSwipedDown).not.toHaveBeenCalled();
+      expect(swipeFuncsTwo.onSwipingDown).not.toHaveBeenCalled();
+      expect(swipeFuncsTwo.onSwipedUp).not.toHaveBeenCalled();
+      expect(swipeFuncsTwo.onSwipingUp).not.toHaveBeenCalled();
+      expect(swipeFuncsTwo.onSwipedLeft).not.toHaveBeenCalled();
+      expect(swipeFuncsTwo.onSwipingLeft).not.toHaveBeenCalled();
+      expect(swipeFuncsTwo.onSwipedRight).not.toHaveBeenCalled();
+      expect(swipeFuncsTwo.onSwipingRight).not.toHaveBeenCalledTimes(3);
+
+      expect(swipeFuncsTwo.onSwiped).not.toHaveBeenCalled();
+      expect(swipeFuncsTwo.onSwiping).not.toHaveBeenCalledTimes(3);
+      expect(onTapTwo).not.toHaveBeenCalled();
 
       touchAreaTwo.simulate('touchStart', createStartTouchEventObject({ x: 100, y: 200 }));
       touchAreaTwo.simulate('touchMove', createMoveTouchEventObject({ x: 100, y: 175 }));
